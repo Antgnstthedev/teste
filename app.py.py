@@ -7,10 +7,10 @@ app = Flask(_name_)
 
 SMTP_SERVER = 'smtp.gmail.com'
 SMTP_PORT = 587
-SMTP_USER = 'seu_email@gmail.com'
-SMTP_PASSWORD = 'sua_senha_ou_app_password'
+SMTP_USER = 'jotaprxdx19@gmail.com'
+SMTP_PASSWORD = 'tnog asiu tekm jdkg'
 
-EMAIL_BARB = 'email_do_barbeiro@gmail.com'
+EMAIL_BARB = 'flawlexx00@gmail.com'
 
 @app.route('/')
 def index():
