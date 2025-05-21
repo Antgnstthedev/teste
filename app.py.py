@@ -1,49 +1,55 @@
-from flask import Flask, request, jsonify
-from flask_mail import Mail, Message
-from flask_cors import CORS
-import os
-import traceback
+from flask import Flask, request, render_template_string
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
-app = Flask(__name__)
-CORS(app)
+app = Flask(_name_)
 
-# Configuração do servidor de e-mail (exemplo com Gmail)
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'jotaprxdx19@gmail.com'  # SEU E-MAIL
-app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
-# app.config['MAIL_PASSWORD'] = 'stnog asiu tekm jdkg'           # SENHA DE APP GERADA
-app.config['MAIL_DEFAULT_SENDER'] = ('Barbearia', 'jotaprxdx19@gmail.com')
+SMTP_SERVER = 'smtp.gmail.com'
+SMTP_PORT = 587
+SMTP_USER = 'seu_email@gmail.com'
+SMTP_PASSWORD = 'sua_senha_ou_app_password'
 
-mail = Mail(app)
+EMAIL_BARB = 'email_do_barbeiro@gmail.com'
 
-@app.route("/contato", methods=["POST"])
-def contato():
-    dados = request.get_json()
+@app.route('/')
+def index():
+    # Aqui você pode servir seu HTML, por simplicidade retornando uma mensagem
+    return 'Página principal'
 
-    nome = dados.get("nome")
-    email = dados.get("email")  # usamos "email" agora, não "emailCliente"
-    horario = dados.get("horario")
+@app.route('/enviar-email', methods=['POST'])
+def enviar_email():
+    nome = request.form.get('nome')
+    email_cliente = request.form.get('email')
+    celular = request.form.get('celular')
+    mensagem_cliente = request.form.get('mensagem')
 
-    if not nome:
-        return "Campo 'nome' obrigatório.", 400
-    if not email or not horario:
-        return "Todos os campos são obrigatórios.", 400
+    msg = MIMEMultipart()
+    msg['From'] = SMTP_USER
+    msg['To'] = EMAIL_BARB
+    msg['Subject'] = f'Novo agendamento de {nome}'
+    msg.add_header('Reply-To', email_cliente)  # importante para responder direto ao cliente
+
+    corpo = f"""
+    Novo agendamento pelo site:
+
+    Nome: {nome}
+    Email: {email_cliente}
+    Celular: {celular}
+    Mensagem: {mensagem_cliente}
+    """
+
+    msg.attach(MIMEText(corpo, 'plain'))
 
     try:
-        msg = Message(
-            subject="Confirmação de Agendamento - Barbearia",
-            recipients=[email],
-            body=f"Olá, {nome}!\n\nSeu horário foi agendado com sucesso para: {horario}.\n\nAgradecemos pela preferência!"
-        )
-        mail.send(msg)
-        return jsonify({"mensagem": "Agendamento realizado e e-mail enviado!"}), 200
-
+        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+        server.starttls()
+        server.login(SMTP_USER, SMTP_PASSWORD)
+        server.sendmail(SMTP_USER, EMAIL_BARB, msg.as_string())
+        server.quit()
+        return "E-mail enviado com sucesso!"
     except Exception as e:
-        print("Erro ao enviar e-mail:", e)
-        traceback.print_exc()
-        return "Erro ao enviar e-mail.", 500
+        return f"Erro ao enviar e-mail: {str(e)}"
 
-if __name__ == "__main__":
+if _name_ == '_main_':
     app.run(debug=True)
